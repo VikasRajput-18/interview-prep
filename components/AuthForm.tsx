@@ -6,11 +6,17 @@ import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
+import { auth } from "@/firebase/client";
+import { signIn, signUp } from "@/lib/actions/auth.actions";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import FormField from "./FormField";
-import { useRouter } from "next/navigation";
 
 const authFormSchema = (type: FormType) => {
   return z.object({
@@ -34,16 +40,49 @@ export default function AuthForm({ type }: { type: FormType }) {
   });
 
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    const { name, email, password } = values;
     try {
       if (type === "sign-up") {
-        console.log("Sign Up", values);
-        toast.success("Account created successfully");
+        const userCredentials = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+
+        const result = await signUp({
+          uid: userCredentials.user.uid,
+          name: name!,
+          email,
+          password,
+        });
+
+        if (!result?.success) {
+          toast.error(result?.message);
+          return;
+        }
+
+        toast("Account created successfully");
         router.push("/sign-in");
       } else {
-        console.log("Sign In", values);
-        toast.success("Sign in successfully");
+        const userCredentials = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+
+        const idToken = await userCredentials.user.getIdToken();
+
+        if (!idToken) {
+          toast.error("Sign in failed");
+          return;
+        }
+
+        await signIn({
+          email,
+          idToken,
+        });
+        toast("Sign in successfully");
         router.push("/");
       }
     } catch (error) {
