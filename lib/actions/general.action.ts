@@ -3,6 +3,7 @@
 //         Transcript:
 //         ${formattedTranscript}
 
+
 //         Please score the candidate from 0 to 100 in the following areas. Do not add categories other than the ones provided:
 //         - **Communication Skills**: Clarity, articulation, structured responses.
 //         - **Technical Knowledge**: Understanding of key concepts for the role.
@@ -12,3 +13,51 @@
 //         `,
 // system:
 //         "You are a professional interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories",
+
+import { db } from "@/firebase/admin";
+
+
+export async function getInterviewsByUserId(
+    userId: string
+  ): Promise<Interview[] | null> {
+    const interviews = await db
+      .collection("interviews")
+      .where("userId", "==", userId)
+      .orderBy("createdAt", "desc")
+      .get();
+  
+    return interviews.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Interview[];
+  }
+  
+  export async function getLatestInterviews(
+    params: GetLatestInterviewsParams
+  ): Promise<Interview[] | null> {
+    const { userId, limit = 20 } = params;
+  
+    const interviews = await db
+      .collection("interviews")
+      .orderBy("createdAt", "desc")
+      .where("finalized", "==", true)
+      .where("userId", "!=", userId)
+      .limit(limit)
+      .get();
+  
+    return interviews.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Interview[];
+  }
+
+  export async function getInterviewById(
+    id: string
+  ): Promise<Interview | null> {
+    const interview = await db
+      .collection("interviews")
+      .doc(id)
+      .get();
+  
+    return interview.data() as Interview | null
+  }
