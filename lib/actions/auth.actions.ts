@@ -2,6 +2,7 @@
 
 import { auth, db } from "@/firebase/admin";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 const ONE_WEEK = 60 * 60 * 24 * 7 * 1000;
 
@@ -113,4 +114,12 @@ export async function isAuthenticated() {
   return !!user;
 }
 
+export async function logout() {
+  const cookieStore = await cookies();
 
+  // Clear the session cookie
+  cookieStore.set("session", "", { path: "/", maxAge: -1 });
+
+  // Redirect to sign-in page
+  redirect("/sign-in");
+}

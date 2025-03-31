@@ -1,3 +1,4 @@
+import Logout from "@/components/Logout";
 import { isAuthenticated } from "@/lib/actions/auth.actions";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,7 +11,7 @@ const RootLayout = async ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="root-layout">
-      <nav className="">
+      <nav className="flex items-center justify-between">
         <Link
           href={"/"}
           className="
@@ -19,6 +20,8 @@ const RootLayout = async ({ children }: { children: ReactNode }) => {
           <Image src={"/logo.svg"} alt="logo" width={38} height={32} />
           <h2 className="text-primary-100">Prep AI</h2>
         </Link>
+
+        <Logout />
       </nav>
       {children}
     </div>

@@ -1,7 +1,7 @@
 import Agent from "@/components/Agent";
 import DisplayTechIcons from "@/components/DisplayTechIcons";
 import { getCurrentUser } from "@/lib/actions/auth.actions";
-import { getInterviewById } from "@/lib/actions/general.action";
+import { getFeedbackByInterviewId, getInterviewById } from "@/lib/actions/general.action";
 import { getRandomInterviewCover } from "@/lib/utils";
 import Image from "next/image";
 import { redirect } from "next/navigation";
@@ -18,6 +18,12 @@ const InterviewDetailed = async ({
   const user = await getCurrentUser();
   const interview = await getInterviewById(id);
   if (!interview) redirect("/");
+
+  const feedback = await getFeedbackByInterviewId({
+    interviewId: id,
+    userId: user?.id!,
+  });
+
   return (
     <>
       <div className="flex flex-row gap-4 justify-between">
@@ -41,11 +47,12 @@ const InterviewDetailed = async ({
         </p>
       </div>
       <Agent
-        userName={user?.name}
+        userName={user?.name || ""}
         interviewId={id}
-        userId={id}
+        userId={user?.id}
         type="interview"
         questions={interview.questions}
+        feedbackId={feedback?.id}
       />
     </>
   );
